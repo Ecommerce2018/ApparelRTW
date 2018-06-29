@@ -1,0 +1,806 @@
+<%- include('../../../templates/admin-navbar.ejs') -%>
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <h1>
+       <%=title[0].strProductName%>
+    </h1>
+    <small>Product Code: <%=title[0].strProductCode%> &nbsp;&nbsp; </small>
+    <ol class="breadcrumb">
+      <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+      <li><a href="#">Maintenance</a></li>
+      <li class="active">Inventory</li>
+    </ol>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="nav-tabs-custom">
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#inventory" data-toggle="tab"><i class="fa fa-bars"></i> Inventory</a></li>
+            <li><a href="#newProduct" data-toggle="tab"><i class="fa fa-plus"></i> New product item</a></li>
+          </ul>
+          <div class="tab-content">
+            <!-- Inventory -->
+            <div class="tab-pane active" id="inventory">
+
+            <p class="text-light-blue">Note:
+              <span class="label label-danger">Critical Limit</span> means that the stock quantity is below critical limit, you need to restock.
+            </br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <span class="label label-warning">Critical Limit</span> means that the stock has reached its critical limit
+          </br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check the inventory transaction to see changes happened per inventory
+          </p>
+
+              </br>
+              <!-- /.box-header -->
+              <div class="box-body table-responsive">
+                <table id="example2" class="table table-bordered table-hover">
+                  <thead>
+                  <tr>
+                    <th>No</th>
+
+                    <th>Supplier</th>
+                    <th>Size</th>
+                    <th>SRP</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <% if (re == null || re == undefined || re.length == 0) { %>
+
+                  <% }else { %>
+                    <% re.forEach(function(i){ %>
+                      <tr>
+                        <td><%=i.intInventoryNo%></td>
+
+                      <td><%=i.strFname%>&nbsp;<%=i.strLname%></td>
+                      <td><%=i.intSize%>&nbsp;<%=i.strUnitName%></td>
+                      <td>₱ <%=(i.productSRP).toFixed(2)%></td>
+                      <td>₱ <%=(i.productPrice).toFixed(2)%></td>
+                      <!-- <td><%= moment(i.expirationDate).format("MMM Do YYYY")%></td> -->
+                      <td><%=i.intQuantity%></td>
+                      <td>
+                        <% if (i.intStatus == 1){ %>
+                          <span class="label label-success">Active</span>
+                        <% }else{ %>
+                          <span class="label label-danger">Inactive</span>
+                        <% } %>
+
+                        <% if (i.intQuantity < i.intCriticalLimit){ %>
+                          <span class="label label-danger">Critical Limit</span>
+                        <% } %>
+                        <% if (i.intQuantity == i.intCriticalLimit){ %>
+                          <span class="label label-warning">Critical Limit</span>
+                        <% } %>
+
+
+                      </td>
+                      <form>
+                      <td>
+
+                      <button  type="button" data-number="<%=i.intInventoryNo%>" data-toggle="modal" data-target="#addStock" class="addStock btn btn-info btn-sm"><i class="fa fa-plus"></i></button>
+                      <button type="button" data-number="<%=i.intInventoryNo%>" data-product="<%=i.intProductNo%>" data-srp="<%=i.productSRP%>" data-price="<%=i.productPrice%>" data-shelf="<%=i.intShelfNo%>" data-critical="<%=i.intCriticalLimit%>" data-promotype="<%=i.intPromoType%>" data-toggle="modal" data-target="#editInventory" class="editbutton btn btn-primary btn-sm" ><i class="fa fa-edit"></i></button>
+
+                      <a href="/inventory/transactions?product=<%=i.intProductNo%>&ino=<%=i.intInventoryNo%>"><button type="button" class="btn btn-default btn-sm" >Transactions</button></a>
+                      <!-- <a href="/inventory/viewStock?product=<%=i.intProductNo%>&ino=<%=i.intInventoryNo%>"><button type="button" class="btn btn-default btn-sm" >View Stocks</button></a> -->
+
+                      </td>
+                    </form>
+                    </tr>
+                    <% }) %>
+                  <% } %>
+
+                  </tbody>
+
+                </table>
+              </div>
+              <!-- /.box-body -->
+            </div>
+            <!-- /#fa-icons -->
+
+
+            <!-- New product Item-->
+            <div class="tab-pane" id="newProduct">
+              <div class="row">
+                <div class="col-sm-8">
+                  <!-- form start -->
+                  <form role="form" method="post" enctype="multipart/form-data"     action="/inventory/addProductItem">
+                    <div class="box-body">
+
+                      <div class="form-group">
+
+                        <% var number = "1000"; %>
+                        <% if (list == null || list == undefined || list.length == 0 ) { %>
+                        <% number = "1000"; %>
+                        <% }else{ %>
+                          <% var number = parseInt(list[0].intInventoryNo) + 1 %>
+                          <!-- <input type="text" class="form-control" value="<%=number%>" disabled id="add_prodno" name="add_prodno" > -->
+
+                        <% } %>
+                          <div class="row">
+                            <div class="col-sm-4">
+                              <input type="hidden" class="form-control" value="<%=number%>"  id="add_inventoryno" name="add_inventoryno" >
+                              <input type="hidden" class="form-control" value="<%=product%>"  id="add_productno" name="add_productno" >
+                            </div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                        <div class="row">
+                          <div class="col-sm-6">
+                            <label for="add_sname">Supplier Name</label>
+                            <input type="hidden" class="form-control"  id="add_sno" name="add_sno" >
+                            <input type="text" class="form-control" disabled id="add_sname" name="add_sname" >
+                          </div>
+                          <div class="col-sm-6">
+                          </br>
+                            &nbsp; &nbsp;<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#selectSupplier"><i class="fa fa-search"></i> Select Supplier Here</button>
+                          <p>  &nbsp;&nbsp;&nbsp;New supplier? Click <a data-toggle="modal" data-target="#addSupplier">here</a></p>
+                          </div>
+                        </div>
+
+                      </div>
+                      <div class="form-group">
+                        <div class="row">
+                          <div class="col-sm-6">
+                            <label for="add_bname">Business Name</label>
+                            <input type="text" class="form-control" disabled id="add_bname" name="add_bname" >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="add_srp">Product SRP</label>
+                        <input type="number" class="form-control" required id="add_srp" name="add_srp" >
+                      </div>
+                      <div class="form-group">
+                        <label for="add_price">Product Price</label>
+                        <input type="number" class="form-control" required id="add_price" name="add_price" >
+                      </div>
+                      <div class="form-group">
+                        <div class="row">
+
+                          <div class="col-sm-2">
+                            <label for="add_size">Size</label>
+                            <input type="number" class="form-control" required id="add_size" name="add_size" >
+                          </div>
+                          <div class="col-sm-2">
+
+                            <label for="add_uom">   </label>
+                            <select class="form-control" required id="add_uom" name="add_uom"  >
+                              <% if (uom == null || uom == undefined || uom.length == 0){ %>
+                                <option></option>
+                              <% }else{ %>
+                                <% uom.forEach(function(s){ %>
+                                  <option value="<%=s.intUomNo%>"><%=s.strUnitName%></option>
+                                <% }) %>
+
+                              <% } %>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <div class="row">
+                          <div class="col-xs-4">
+                            <label for="add_batch">Batch No</label>
+                            <input type="number" class="form-control" id="add_batch" name="add_batch" >
+                          </div>
+                          <div class="col-xs-4">
+                            <label for="shelf">Shelf No</label>
+                            <input type="number" class="form-control"id="add_shelf" name="add_shelf" >
+                          </div>
+                          <div class="col-xs-4">
+                            <label for="add_critical">Critical Limit</label>
+                            <input type="number" class="form-control" required id="add_critical" name="add_critical" >
+                          </div>
+                        </div>
+                      </div>
+
+
+                      <div class="box-footer">
+                                 <a href="/inventory/sample"><button type="reset" class="btn btn-default">Clear Fields</button></a>
+                                 <a href=""><button type="submit" class="btn btn-info pull-right">Submit Order Form</button></a>
+                      </div>
+                  </div>
+                </form>
+
+              </div>
+
+
+            </div>
+            <!-- /#ion-icons -->
+
+          </div>
+          <!-- /.tab-content -->
+        </div>
+        <!-- /.nav-tabs-custom -->
+      </div>
+      <!-- /.col -->
+    </div>
+    <!-- /.row -->
+  </section>
+  <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+
+  <!-- Modals -->
+
+  <div class="modal fade" id="addStock">
+    <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title">Product Stock Form</h4>
+      </div>
+      <div class="modal-body">
+      <!-- Horizontal Form -->
+
+      <!-- form start -->
+
+      <% var num = "1000" %>
+      <% if (lastbatch == undefined || lastbatch == null){ %>
+
+      <% }else if (lastbatch.length == 0){ %>
+
+      <% }else{ %>
+      <% num = parseInt(lastbatch[0].intBatchNo) + 1 %>
+      <% } %>
+
+        <form role="form" method="post" action="/inventory/addStock" id="form">
+          <div class="box-body">
+            <div class="form-group">
+              <label for="">Batch No:</label>
+              <input type="text" class="form-control" value="<%=num%>" id="batch" placeholder="">
+              <input type="hidden" class="form-control" name="ino" id="ino" placeholder="">
+            </div>
+
+            <div class="form-group">
+              <label for="">Expiration Date:</label>
+              <input type="date" required class="form-control" name="expire" id="expire" placeholder="">
+            </div>
+
+            <div class="form-group">
+              <label for="">Quantity:</label>
+              <input type="number" required class="form-control" name="quantity" id="quantity" placeholder="">
+            </div>
+
+          </div>
+
+
+      </div>
+      <div class="modal-footer">
+      <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+      <button type="submit" data-product="<%=product%>" id="save_stock" class="btn btn-primary">Save</button>
+      </div>
+      </form>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+
+  <div class="modal fade" id="addSupplier">
+    <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title">Supplier Information Form</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- form start -->
+        <form role="form" method="post" action="/inventory/addSupplier">
+          <div class="box-body">
+            <div class="form-group">
+              <div class="row">
+                <div class="col-xs-4">
+                  <label for="fname">First Name</label>
+                  <input type="text" class="form-control" required id="fname" name="fname" >
+                </div>
+                <div class="col-xs-4">
+                  <label for="mname">Middle Name</label>
+                  <input type="text" class="form-control"id="mname" name="mname" >
+                </div>
+                <div class="col-xs-4">
+                  <label for="lname">Last Name</label>
+                  <input type="text" class="form-control" required id="lname" name="lname" >
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bname">Business Name</label>
+              <input type="text" class="form-control" id="bname" required name="bname" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="address">Business Address</label>
+              <input type="text" class="form-control" id="address" name="address" required placeholder="">
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-xs-5">
+                  <label for="mobile">Mobile No.</label>
+                  <input type="text" class="form-control" id="mobile" name="mobile" >
+                </div>
+                <div class="col-xs-5">
+                  <label for="phone">Phone No.</label>
+                  <input type="text" class="form-control" id="phone" name="phone" >
+                </div>
+              </div>
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox">Add supplier to form
+              </label>
+            </div>
+          </div>
+          <!-- /.box-body -->
+
+
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+   <!-- /.modal-dialog -->
+  </div>
+
+  <div class="modal fade" id="selectSupplier">
+    <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title">Supplier List</h4>
+      </div>
+      <div class="modal-body">
+
+      <!-- /.box-header -->
+      <div class="box-body table-responsive">
+        <table id="example1" class="table table-bordered table-hover">
+          <thead>
+            <% if (su == null || su == undefined || su.length == 0){ %>
+              <h4> No records of Suppliers </h4>
+            <% } else { %>
+          <tr>
+            <th>Supplier No</th>
+            <th>Supplier Name</th>
+            <th>Business Name</th>
+            <th>Action</th>
+          </tr>
+          </thead>
+          <tbody>
+
+            <% su.forEach(function(i){ %>
+          <tr>
+                <td><%=i.intUserID%></td>
+                <td><%=i.strFname%>&nbsp;<%=i.strLname%></td>
+                <td><%=i.strBusinessName%></td>
+                <td><button data-dismiss="modal" data-supplierid="<%=i.intUserID%>" data-business="<%=i.strBusinessName%>" data-supplier="<%=i.strFname%> <%=i.strLname%>"  class="setter btn btn-info btn-sm">Select</button></td>
+
+          </tr>
+          <% }) %>
+        <% } %>
+
+
+          </tbody>
+
+        </table>
+      </div>
+      <!-- /.box-body -->
+
+       </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+ </div>
+
+ <div class="modal fade" id="editInventory">
+   <div class="modal-dialog">
+   <div class="modal-content">
+     <div class="modal-header">
+     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+       <span aria-hidden="true">&times;</span></button>
+     <h4 class="modal-title">Edit Details</h4>
+     </div>
+     <div class="modal-body">
+
+      <div class="dropdown show">
+        <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Select changes <i class="fa fa-caret-down"></i>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+          <li><a class="dropdown-item" id="form1_active" href="#">Price</a></li>
+          <li><a class="dropdown-item" id="form2_active" href="#">Shelf No</a></li>
+          <li><a class="dropdown-item" id="form3_active" href="#">Critical Limit</a></li>
+          <li><a class="dropdown-item" id="form4_active" href="#">Change Promo Type</a></li>
+          <li><a class="dropdown-item" id="form5_active" href="#">Change Supplier</a></li>
+        </ul>
+      </div>
+
+      <!-- Update -->
+      <div id="form1">
+      </br>
+        <form method="post" action="/inventory/update">
+
+          <div class="form-group">
+            <input type="hidden" name="ino" class="ino">
+            <input type="hidden" name="pno" class="pno">
+            <div class="for_price">
+              <label for="">SRP</label>
+              <input type="number" value="0" name="srp" class="srp form-control">
+              <label for="">Product Price</label>
+              <input type="number" value="0" name="price" class="price form-control">
+            </div>
+            <div class="for_shelf">
+              <label for="">Shelf</label>
+              <input type="number" value="0" name="shelf" class="shelf form-control">
+            </div>
+            <div class="for_critical">
+              <label for="">Critical Limit</label>
+              <input type="number" value="0" name="critical" class="critical form-control">
+            </div>
+
+            <div class="for_promo">
+              <label for="">Promo Type</label>
+              <select name="promotype" class="promotype form-control">
+                <option value="0">None</option>
+                <option value="1">Discount</option>
+                <option value="2">Package</option>
+              </select>
+              <small>Note: You can choose where to add product in the Promotion/Package Discount Section</small>
+            </div>
+            <div class="for_changes">
+              <input type="hidden" name="changes" class="changes form-control">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+
+          </div>
+        </form>
+      </div>
+
+
+
+
+
+     </div>
+   <!-- /.modal-content -->
+ </div>
+  <!-- /.modal-dialog -->
+ </div>
+</div>
+
+
+
+ <!-- Main Footer -->
+ <footer class="main-footer">
+   <!-- To the right -->
+   <div class="pull-right hidden-xs">
+     Ultra Super Green
+   </div>
+   <!-- Default to the left -->
+   <strong>Copyright &copy; 2016 <a href="#">AdminLTE template</a>.</strong> All rights reserved.
+ </footer>
+
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+      <!-- Create the tabs -->
+      <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
+        <li class="active"><a href="#control-sidebar-home-tab" data-toggle="tab"><i class="fa fa-home"></i></a></li>
+        <li><a href="#control-sidebar-settings-tab" data-toggle="tab"><i class="fa fa-gears"></i></a></li>
+      </ul>
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <!-- Home tab content -->
+        <div class="tab-pane active" id="control-sidebar-home-tab">
+          <h3 class="control-sidebar-heading">Recent Activity</h3>
+          <ul class="control-sidebar-menu">
+            <li>
+              <a href="javascript:;">
+                <i class="menu-icon fa fa-birthday-cake bg-red"></i>
+
+                <div class="menu-info">
+                  <h4 class="control-sidebar-subheading">Langdon's Birthday</h4>
+
+                  <p>Will be 23 on April 24th</p>
+                </div>
+              </a>
+            </li>
+          </ul>
+          <!-- /.control-sidebar-menu -->
+
+          <h3 class="control-sidebar-heading">Tasks Progress</h3>
+          <ul class="control-sidebar-menu">
+            <li>
+              <a href="javascript:;">
+                <h4 class="control-sidebar-subheading">
+                  Custom Template Design
+                  <span class="pull-right-container">
+                      <span class="label label-danger pull-right">70%</span>
+                    </span>
+                </h4>
+
+                <div class="progress progress-xxs">
+                  <div class="progress-bar progress-bar-danger" style="width: 70%"></div>
+                </div>
+              </a>
+            </li>
+          </ul>
+          <!-- /.control-sidebar-menu -->
+
+        </div>
+        <!-- /.tab-pane -->
+        <!-- Stats tab content -->
+        <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
+        <!-- /.tab-pane -->
+        <!-- Settings tab content -->
+        <div class="tab-pane" id="control-sidebar-settings-tab">
+          <form method="post">
+            <h3 class="control-sidebar-heading">General Settings</h3>
+
+            <div class="form-group">
+              <label class="control-sidebar-subheading">
+                Report panel usage
+                <input type="checkbox" class="pull-right" checked>
+              </label>
+
+              <p>
+                Some information about this general settings option
+              </p>
+            </div>
+            <!-- /.form-group -->
+          </form>
+        </div>
+        <!-- /.tab-pane -->
+      </div>
+    </aside>
+    <!-- /.control-sidebar -->
+    <!-- Add the sidebar's background. This div must be placed
+    immediately after the control sidebar -->
+    <div class="control-sidebar-bg"></div>
+  </div>
+  <!-- ./wrapper -->
+
+  <!-- REQUIRED JS SCRIPTS -->
+
+  <!-- jQuery 3 -->
+  <script src="/assets/admin/bower_components/jquery/dist/jquery.min.js"></script>
+  <!-- Bootstrap 3.3.7 -->
+  <script src="/assets/admin/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+  <!-- DataTables (new added)	 -->
+  <script src="/assets/admin/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+  <script src="/assets/admin/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+  <!-- SlimScroll -->
+  <script src="/assets/admin/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+  <!-- FastClick -->
+  <script src="/assets/admin/bower_components/fastclick/lib/fastclick.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/assets/admin/dist/js/adminlte.min.js"></script>
+  <!-- sweetalert  -->
+  <script src="/assets/bootstrap-sweetalert-master/dist/sweetalert.min.js"></script>
+  <!-- Notification  -->
+  <script src="/assets/admin/notification.js"></script>
+
+  <!-- page script (new added) -->
+  <script>
+    $(function () {
+      $('#example2').DataTable({
+        'paging'      : true,
+        'lengthChange': true,
+        'searching'   : true,
+        'ordering'    : true,
+        'info'        : true,
+        'autoWidth'   : true,
+  	  'select'		: true,
+  	  'scroll'		: true
+      })
+    })
+  </script>
+
+
+
+  <script>
+    $('#form1').hide();
+
+
+    $('.for_promo').hide();
+    $('.for_price').hide();
+    $('.for_critical').hide();
+    $('.for_shelf').hide();
+
+
+    $('#form1_active').on('click',function(){
+      $('.for_price').show();
+      $('.for_shelf').hide();
+      $('.for_critical').hide();
+      $('.for_promo').hide();
+      $('.changes').val("Price Changes");
+      $('#form1').show();
+
+
+    })
+
+    $('#form2_active').on('click',function(){
+      $('.for_shelf').show();
+      $('.for_price').hide();
+      $('.for_critical').hide();
+      $('.for_promo').hide();
+      $('.changes').val("Changed Shelf Number");
+      $('#form1').show();
+
+
+    })
+
+    $('#form3_active').on('click',function(){
+      $('.for_critical').show();
+      $('.for_price').hide();
+      $('.for_shelf').hide();
+      $('.for_promo').hide();
+      $('.changes').val("Changed Critical Limit");
+
+      $('#form1').show();
+
+
+    })
+
+    $('#form4_active').on('click',function(){
+      $('.for_promo').show();
+      $('.for_price').hide();
+      $('.for_shelf').hide();
+      $('.for_critical').hide();
+      $('.changes').val("Changed Promo Type");
+
+      $('#form1').show();
+
+
+    })
+
+    $('#form5_active').on('click',function(){
+      $('#form1').show();
+
+
+    })
+  </script>
+
+  <script>
+    $('.editbutton').on('click',function(){
+      $('.ino').val($(this).data('number'));
+      $('.pno').val($(this).data('product'));
+      $('.price').val($(this).data('price'));
+      $('.srp').val($(this).data('srp'));
+      $('.shelf').val($(this).data('shelf'));
+      $('.critical').val($(this).data('critical'));
+      $('.promotype').val($(this).data('promotype'));
+    })
+  </script>
+
+  <script>
+    $('.addStock').on('click',function(){
+      $('#ino').val($(this).data('number'));
+
+    })
+  </script>
+
+  <script>
+
+  var frm = $('#form');
+
+  frm.submit(function (e) {
+
+      e.preventDefault();
+
+      $.ajax({
+          type: frm.attr('method'),
+          url: frm.attr('action'),
+          data: frm.serialize(),
+          success: function (response, status, http) {
+
+              if (response == "yes"){
+                window.location.reload();
+
+              }
+          },
+          error: function (data) {
+              console.log('An error occurred.');
+              console.log(data);
+              alert('not successful');
+          },
+      });
+  });
+
+
+
+  </script>
+
+  <script>
+    $('.viewButton').on('click', function(){
+      $('#view_prodno').val($(this).data('prodno'));
+      $('#view_pcode').val($(this).data('prodcode'));
+      $('#view_pname').val($(this).data('prodname'));
+      $('#view_pdesc').val($(this).data('proddesc'));
+      $('#view_prodpic').val($(this).data('prodpic'));
+      var filename = "/images/" + $(this).data('prodpicture');
+      //alert(filename);
+      $('#pic').attr('src',filename);
+
+      var brand = $(this).data('prodbrand');
+      $('#view_brand').find('option').each( function() {
+        var $this = $(this);
+        if ($this.val() == brand) {
+           $this.attr('selected','selected');
+           return false;
+        }
+      });
+
+      var categ = $(this).data('prodcateg');
+      $('#view_pcat').find('option').each( function() {
+        var $this = $(this);
+        if ($this.val() == categ) {
+           $this.attr('selected','selected');
+           return false;
+        }
+      });
+
+    });
+  </script>
+
+
+  <script>
+    $('#title').html("USG | All Products");
+    $(".treeview a:contains('Maintenance')").parent().addClass("active");
+    $(".treeview a:contains('Inventory')").parent().addClass("active");
+    $(".navi a:contains('All Products')").parent().addClass("active");
+  </script>
+
+  <script>
+    $(function () {
+      $('#example1').DataTable({
+        'paging'      : true,
+        'lengthChange': true,
+        'searching'   : true,
+        'ordering'    : true,
+        'info'        : true,
+        'autoWidth'   : true,
+      'select'		: true,
+      'scroll'		: true,
+      'searching' : true
+      })
+    })
+  </script>
+
+  <script>
+    $('.setter').on('click', function(){
+      $('#add_sno').val($(this).data('supplierid'));
+      $('#add_sname').val($(this).data('supplier'));
+      $('#add_bname').val($(this).data('business'));
+    })
+  </script>
+
+
+  <!-- Optionally, you can add Slimscroll and FastClick plugins.
+       Both of these plugins are recommended to enhance the
+       user experience. -->
+  </body>
+  </html>
